@@ -4,5 +4,3 @@
 CMakeFiles/operating_system_project3.dir/app.c.o: ../app.c
 CMakeFiles/operating_system_project3.dir/app.c.o: ../memalloc.h
 
-CMakeFiles/operating_system_project3.dir/memalloc.c.o: ../memalloc.c
-

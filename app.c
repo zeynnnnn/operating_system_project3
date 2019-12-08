@@ -44,10 +44,13 @@ int	main(int	argc,	char	*argv[])
     }
 //	below	we	allocate	and	deallocate	memory	dynamically
     x1	=	mem_allocate(600);
+    mem_print();
     x2	=	mem_allocate(4500);
+    mem_print();
     x3	=	mem_allocate(1300);
     mem_free(x1);
     mem_free(x2);
     mem_free(x3);
+    mem_print();
     return	0;
 }

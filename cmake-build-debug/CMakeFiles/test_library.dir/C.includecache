@@ -11,4 +11,12 @@ stdlib.h
 -
 stdio.h
 -
+memalloc.h
+/home/zson/CLionProjects/operating_system_project3/memalloc.h
+math.h
+-
+string.h
+-
+
+/home/zson/CLionProjects/operating_system_project3/memalloc.h
 
