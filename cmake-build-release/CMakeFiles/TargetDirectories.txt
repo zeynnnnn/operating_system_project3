@@ -1,0 +1,4 @@
+/home/zson/CLionProjects/operating_system_project3/cmake-build-release/CMakeFiles/edit_cache.dir
+/home/zson/CLionProjects/operating_system_project3/cmake-build-release/CMakeFiles/rebuild_cache.dir
+/home/zson/CLionProjects/operating_system_project3/cmake-build-release/CMakeFiles/operating_system_project3.dir
+/home/zson/CLionProjects/operating_system_project3/cmake-build-release/CMakeFiles/test_library.dir

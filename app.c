@@ -1,3 +1,10 @@
+/*
+	Zeynep Sonkaya
+	Gökçe Sefa
+	CS 342
+	Project 3
+	app.c
+ */
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<unistd.h>
@@ -29,7 +36,7 @@ int	main(int	argc,	char	*argv[])
     for	(i	=	0;	i	<	size;	++i)
         charptr[i]	=	0;
     printf("---chunk	test	ended	- success\n");
-    ret	=	mem_init(chunkptr,	size,	0);
+    ret	=	mem_init(chunkptr,	size,	BEST_FIT);
     if	(ret	==	-1)	{
         printf("could	not	initialize	\n");
         exit(1);

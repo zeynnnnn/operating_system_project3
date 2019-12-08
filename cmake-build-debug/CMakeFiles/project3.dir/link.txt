@@ -1,0 +1,2 @@
+/usr/bin/ar qc libproject3.a  CMakeFiles/project3.dir/memalloc.c.o
+/usr/bin/ranlib libproject3.a

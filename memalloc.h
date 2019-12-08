@@ -1,3 +1,10 @@
+/*
+	Zeynep Sonkaya
+	Gökçe Sefa
+	CS 342
+	Project 3
+	memalloc.h
+ */
 #ifndef	MEMALLOC_H
 #define	MEMALLOC_H
 int	mem_init(void	*,	int,	int);

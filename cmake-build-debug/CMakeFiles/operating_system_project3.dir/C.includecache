@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/zson/CLionProjects/operating_system_project3/app.c
+stdlib.h
+-
+stdio.h
+-
+unistd.h
+-
+memalloc.h
+/home/zson/CLionProjects/operating_system_project3/memalloc.h
+
+/home/zson/CLionProjects/operating_system_project3/memalloc.h
+
