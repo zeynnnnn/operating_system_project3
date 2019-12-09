@@ -15,7 +15,7 @@
 void  *chunkpoint;
 int lastId;
 void* blocksPointer;
-//	printfs	are	for	debugging;	remove	them	when	you	use/submit	your	library
+
 int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
 {
     lastId=0;
@@ -26,24 +26,16 @@ int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
     if (( chunksize < 32 )||(chunksize> 32*1024))
         return -1;
     chunkpoint=chunkpointer;
-   // long int*  ptr	=	(long int	*)chunkpointer;
    *(int*)chunkpointer = method;
-  //  *chunkpoint =  method;
     void *p = (char*)chunkpointer+sizeof(int);
-    int t =(chunksize*1024)-(2* sizeof(int))- ((int)floor((chunksize*1024)/BLOCK_SIZE));
+    int t =(chunksize*1024)-(2* sizeof(int))- ((int)ceil((chunksize*1024)/BLOCK_SIZE));
     printf("Size::: %d \n",t);
    *(int*) p = t ;
 printf("POinterSize:::  %d\n",*(int*)(p));
 
-// Stores block id of the block allocated to a
-    // process
-
-  //   int allocation[(int)floor((chunksize*1024)/BLOCK_SIZE)];
-// long * allocation=   chunkpoint[2] =&allocation;
     int k=0;
-    // Initially no block is assigned to any process
-   // memset(chunkpoint[2], -1, sizeof((int)floor((chunksize*1024)/BLOCK_SIZE)));
-    for(k=0;k< (int)floor(t/BLOCK_SIZE) ;k++) //calculate according to left over space byte/byte
+    // Initially no block is assigned to any allocation
+    for(k=0;k< (int)floor(1.0*t/BLOCK_SIZE) ;k++) //calculate according to left over space byte/byte
     {
         void *p = (char*)chunkpointer+sizeof(int)*(2+k);
         *(int*) p = -1;
@@ -95,7 +87,7 @@ void	*mem_allocate	(int	objectsize)
         // pick each process and find suitable blocks
         // according to its size ad assign to it
      printf("Found Best fit\n");
-     int objectSizeAsBlock  = (int)floor(objectsize/BLOCK_SIZE);
+     int objectSizeAsBlock  = (int)ceil(1.0*objectsize/BLOCK_SIZE);
             // Find the best fit block for current process
             int bestIdx = -1;
             for (int j=0; j< n; j++)
@@ -123,7 +115,7 @@ void	*mem_allocate	(int	objectsize)
     } else if (*(int*)chunkpoint==FIRST_FIT)
     {
         printf("Found First fit\n");
-        int objectSizeAsBlock  = (int)floor(objectsize/BLOCK_SIZE);
+        int objectSizeAsBlock  = (int)ceil(objectsize/BLOCK_SIZE);
         // Find the best fit block for current process
         int bestIdx = -1;
         for (int j=0; j< n; j++)
@@ -149,7 +141,7 @@ void	*mem_allocate	(int	objectsize)
     }else if (*(int*)chunkpoint==WORST_FIT)
     {
         printf("Found Worst fit\n");
-        int objectSizeAsBlock  = (int)floor(objectsize/BLOCK_SIZE);
+        int objectSizeAsBlock  = (int)ceil(objectsize/BLOCK_SIZE);
         // Find the best fit block for current process
         int worstIdx = -1;
         for (int j=0; j< n; j++)
