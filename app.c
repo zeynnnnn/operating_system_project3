@@ -36,7 +36,7 @@ int	main(int	argc,	char	*argv[])
     for	(i	=	0;	i	<	size;	++i)
         charptr[i]	=	0;
     printf("---chunk	test	ended	- success\n");
-    ret	=	mem_init(chunkptr,	size,	BEST_FIT);
+    ret	=	mem_init(chunkptr,	size,	WORST_FIT);
     if	(ret	==	-1)	{
         printf("could	not	initialize	\n");
         exit(1);

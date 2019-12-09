@@ -14,6 +14,7 @@
 #define BLOCK_SIZE 128
 void  *chunkpoint;
 int lastId;
+void* blocksPointer;
 //	printfs	are	for	debugging;	remove	them	when	you	use/submit	your	library
 int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
 {
@@ -39,14 +40,15 @@ printf("POinterSize:::  %d\n",*(int*)(p));
 
   //   int allocation[(int)floor((chunksize*1024)/BLOCK_SIZE)];
 // long * allocation=   chunkpoint[2] =&allocation;
-
+    int k=0;
     // Initially no block is assigned to any process
    // memset(chunkpoint[2], -1, sizeof((int)floor((chunksize*1024)/BLOCK_SIZE)));
-    for(int k=0;k< (int)floor((chunksize*1024)/BLOCK_SIZE) ;k++)
+    for(k=0;k< (int)floor(t/BLOCK_SIZE) ;k++) //calculate according to left over space byte/byte
     {
         void *p = (char*)chunkpointer+sizeof(int)*(2+k);
         *(int*) p = -1;
     }
+    blocksPointer = (char*)chunkpointer+sizeof(int)*(2+k);
 
     return	(0); //	if	success
 }
@@ -115,20 +117,65 @@ void	*mem_allocate	(int	objectsize)
                 for(int f=0;f<objectSizeAsBlock;f++)
                     allocation[  blockBase[bestIdx]+f]=lastId;
             }
-            void *p = (char*)chunkpoint+sizeof(int)*(2+blockBase[bestIdx]);
+            void *p = (char*)blocksPointer+sizeof(int)*(blockBase[bestIdx]);
         return p;
 
     } else if (*(int*)chunkpoint==FIRST_FIT)
     {
+        printf("Found First fit\n");
+        int objectSizeAsBlock  = (int)floor(objectsize/BLOCK_SIZE);
+        // Find the best fit block for current process
+        int bestIdx = -1;
+        for (int j=0; j< n; j++)
+        {
+            if (blockSize[j]==-1)
+                break;
+            if (blockSize[j] >= objectSizeAsBlock)
+            {
+                bestIdx=j;
+                for(int f=0;f<objectSizeAsBlock;f++)
+                    allocation[  blockBase[bestIdx]+f]=lastId;
+            }
+        }
+        printf("BestIDx %d\n",bestIdx);
+        // If we could find a block for current process
+        if (bestIdx == -1)
+        {
+            return NULL;
+        }
+        void *p = (char*)blocksPointer+sizeof(int)*(blockBase[bestIdx]);
+        return p;
 
     }else if (*(int*)chunkpoint==WORST_FIT)
     {
+        printf("Found Worst fit\n");
+        int objectSizeAsBlock  = (int)floor(objectsize/BLOCK_SIZE);
+        // Find the best fit block for current process
+        int worstIdx = -1;
+        for (int j=0; j< n; j++)
+        {
+            if (blockSize[j]==-1)
+                break;
+            if (blockSize[j] >= objectSizeAsBlock)
+            {
+                if (worstIdx == -1)
+                    worstIdx = j;
+                else if (blockSize[worstIdx] <blockSize[j])
+                    worstIdx = j;
+            }
+        }
+        printf("WorstID %d\n",worstIdx);
+        // If we could find a block for current process
+        if (worstIdx != -1)
+        {
+            for(int f=0;f<objectSizeAsBlock;f++)
+                allocation[  blockBase[worstIdx]+f]=lastId;
+        }
+        void *p = (char*)blocksPointer+sizeof(int)*(blockBase[worstIdx]);
+        return p;
 
     } else
-        return NULL;
-
-
-    return	(NULL); //	if	not	success
+        return NULL; //	if	not	success
 }
 
 
@@ -173,13 +220,13 @@ void	mem_free(void	*objectptr)
 
 
     for (int i = 0; i < lastBlock; i++) {
-        void* p= (char*)(chunkpoint+sizeof(int)*(2+blockBase[i])); //2 COMES FROM METHOD AND SIZE INTS
+        void* p= (char*)(blocksPointer)+sizeof(int)*(blockBase[i]);
         printf("\nCalcuLATED:%lx",(unsigned long)p);
         printf("\ngiven :%lx",(unsigned long)objectptr);
         if (objectptr==p){
-
+            void* p= (char*)(chunkpoint+sizeof(int)*(2+blockBase[i])); //2 COMES FROM METHOD AND SIZE INTS
             int deletedId= *(int*)p;
-            printf("DeletedId :%d",deletedId);
+            printf("\nDeletedId :%d\n",deletedId);
             int y=0;
             while(  allocation[blockBase[i]+y] == deletedId) {
                 allocation[blockBase[i] + y] = -1;
@@ -188,7 +235,6 @@ void	mem_free(void	*objectptr)
             return;
         }
     }
-    return;
 }
 
 void	mem_print	(void) {
@@ -256,21 +302,14 @@ void	mem_print	(void) {
     printf("print	called\n");
     printf( "\nOccupied Block No\tBlock Size\tBlock  Base\n");
     for (int i = 0; i < lastBlock; i++) {
-       void* p= (char*)(chunkpoint+sizeof(int)*(2+blockBase[i]));
+       void* p= (char*)(blocksPointer+sizeof(int)*(blockBase[i]));
         printf( "  %d  \t \t\t %d \t\t %lx \n",i + 1,blockSize[i]*BLOCK_SIZE, (unsigned long )p);
-      //  printf( " jsjdj %d  \t \t\t %d \t\t %lx \n",i + 1,blockSize[i]*BLOCK_SIZE, chunkpoint+blockBase[i]);
-      /*  if (allocation[i] == -1)
-         printf("Not Allocated");
-        printf("\n");
-        return;*/
+
     }
     printf( "\nEmpty Block No\tBlock Size\tBlock  Base\n");
     for (int i = 0; i < emptylastBlock; i++) {
-        void* p= (char*)(chunkpoint+sizeof(int)*(2+emptyBase[i]));
+        void* p= (char*)(blocksPointer+sizeof(int)*(emptyBase[i]));
         printf( "  %d  \t \t\t %d \t\t %lx \n",i + 1,emptySize[i]*BLOCK_SIZE, (unsigned long )p);
-        /*  if (allocation[i] == -1)
-           printf("Not Allocated");
-          printf("\n");
-          return;*/
+
     }
 }
