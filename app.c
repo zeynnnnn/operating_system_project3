@@ -17,7 +17,7 @@ int	main(int	argc,	char	*argv[])
     int	ret;
     int	i;
     int	size;
-    void	*x1,	*x2,	*x3,*x4,*x5; //	object	pointers
+    void	*x1,	*x2,	*x3,*x4,*x5,*x6; //	object	pointers
     if	(argc	!=	2)	{
         printf("usage:	app	<size	in	KB>\n");
         exit(1);
@@ -53,10 +53,12 @@ mem_print();
     mem_print();
     mem_free(x1);
     mem_print();
-    mem_free(x5);
+    x6	=	mem_allocate(500);
+    mem_print();
+/*    mem_free(x5);
     mem_print();
     mem_free(x2);
-    mem_print();
+    mem_print();*/
     /*
     x3	=	mem_allocate(1300);
     printf("Returned x3 :%lx",(unsigned long)x3);

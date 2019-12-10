@@ -134,7 +134,7 @@ void	*mem_allocate	(int	objectsize)
                 printf("\nBlockSize Of Current : %d%c\n",blockSize[j],blockEmpty[j]);
                 if ((blockSize[j] >= objectsize) && (blockEmpty[j]=='E'))
                 {
-                    printf("Girdiiiiiii");
+
                     if (bestIdx == -1)
                         bestIdx = j;
                     else if (blockSize[bestIdx] > blockSize[j])
@@ -144,18 +144,26 @@ void	*mem_allocate	(int	objectsize)
             printf("BestIDx %d\n",bestIdx);
             // If we could find a block for current process
             if (bestIdx != -1) {
-
+                printf("Girdiiiiiii");
                 long int  originalNext ;
+
                 originalNext =    *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char));
+                printf("1");
                  int  firstSize =    *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char) );
+                printf("2");
                 *(int *) ((char *) blockBase[bestIdx] +objectsize )= firstSize- objectsize;
+                printf("3");
                 *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char)) = (long int) (long int *) ( (char *) blockBase[bestIdx] + objectsize);
+                printf("4");
                 *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char) )= objectsize;
+                printf("5");
                 *(char *) ((char *) blockBase[bestIdx]  - sizeof(char)) = 'F';
+                printf("6");
                 *(long int *) ((char *) blockBase[bestIdx]+objectsize + sizeof( int)) = originalNext;
+                printf("7");
                 *(char *) ((char *) blockBase[bestIdx] +objectsize + sizeof(long int)+ sizeof(int)) = 'E';
 
-
+                printf("8");
             }
 
         return (void*)blockBase[bestIdx];
@@ -164,27 +172,44 @@ void	*mem_allocate	(int	objectsize)
     {
         printf("Found First fit\n");
 
+
         // Find the best fit block for current process
         int bestIdx = -1;
-        for (int j=0; j< n; j++)
+        for (int j=0; j< k; j++)
         {
             if (blockSize[j]==-1)
                 break;
-            if (blockSize[j] >= objectsize)
+            printf("\nBlockSize Of Current : %d%c\n",blockSize[j],blockEmpty[j]);
+            if ((blockSize[j] >= objectsize) && (blockEmpty[j]=='E'))
             {
-                bestIdx=j;
-                long int *movedNextPointer = (long int*) ((char *) blockBase[bestIdx - 1] - sizeof(long int));
-                *(long int **) ((char *) blockBase[bestIdx] - sizeof(long int )) = movedNextPointer;
-                *(int *) ((char *) blockBase[bestIdx] - sizeof(long int ) - sizeof(int)) = objectsize;
+                printf("Girdiiiiiii");
+
+                    bestIdx = j;
+                    long int  originalNext ;
+                    originalNext =    *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char));
+                    int  firstSize =    *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char) );
+                    *(int *) ((char *) blockBase[bestIdx] +objectsize )= firstSize- objectsize;
+                    *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char)) = (long int) (long int *) ( (char *) blockBase[bestIdx] + objectsize);
+                    *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char) )= objectsize;
+                    *(char *) ((char *) blockBase[bestIdx]  - sizeof(char)) = 'F';
+                    *(long int *) ((char *) blockBase[bestIdx]+objectsize + sizeof( int)) = originalNext;
+                    *(char *) ((char *) blockBase[bestIdx] +objectsize + sizeof(long int)+ sizeof(int)) = 'E';
+                       return (void*)blockBase[bestIdx];
+
+
             }
         }
-     //   printf("BestIDx %d\n",bestIdx);
+
         // If we could find a block for current process
+
+
+     //   printf("BestIDx %d\n",bestIdx);
+        // If we could  not find a block for current process
         if (bestIdx == -1)
         {
             return NULL;
         }
-        return blockBase[bestIdx];
+        return (void*)blockBase[bestIdx];
 
     }else if (*(int*)chunkpoint==WORST_FIT)
     {
