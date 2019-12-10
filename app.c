@@ -43,6 +43,7 @@ int	main(int	argc,	char	*argv[])
 
     }
 //	below	we	allocate	and	deallocate	memory	dynamically
+mem_print();
     x1	=	mem_allocate(600);
     mem_print();
     printf("Returned x1 :%lx",(unsigned long)x1);
@@ -50,8 +51,13 @@ int	main(int	argc,	char	*argv[])
     x5 = mem_allocate(7999);
     printf("Returned x2 :%lx",(unsigned long)x2);
     mem_print();
-   /* mem_free(x2);
+    mem_free(x1);
     mem_print();
+    mem_free(x5);
+    mem_print();
+    mem_free(x2);
+    mem_print();
+    /*
     x3	=	mem_allocate(1300);
     printf("Returned x3 :%lx",(unsigned long)x3);
     x4	=	mem_allocate(500);
