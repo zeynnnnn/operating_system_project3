@@ -12,11 +12,12 @@
 #include <math.h>
 #include <string.h>
 #include <stdbool.h>
-
-#define BLOCK_SIZE 128
+#define MAX_CHUNK 33554432
+#define MIN_BLOCK 128
+//#define BLOCK_SIZE 128
 void  *chunkpoint;
 int lastId;
-void* blocksPointer;
+int* blocksPointer;
 
 int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
 {
@@ -30,12 +31,24 @@ int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
     chunkpoint=chunkpointer;
    *(int*)chunkpointer = method;
     void *p = (char*)chunkpointer+sizeof(int);
-
-    int t =(chunksize*1024)-(2* sizeof(int));
-    int afterAlloSize=   t - (int)floor(t/(BLOCK_SIZE+ sizeof(int)));
+    *(int*) p = chunksize ;
+   p = p+ sizeof(int);
+   blocksPointer=p;
+   // int t =(chunksize*1024)-(2* sizeof(int));
+ //   int afterAlloSize=   t - (int)floor(t/(BLOCK_SIZE+ sizeof(int)));
       //      printf("Size::: %d \n",afterAlloSize);
-   *(int*) p = afterAlloSize ;
+  // *(int*) p = afterAlloSize ;
 
+    *(int*) blocksPointer = (int)((1024 * chunksize)- sizeof(int)*(3)- sizeof(char)- sizeof(long int)); // first bock initialization
+     p = (char*)p+sizeof(int);
+     *(long int *)p = 999999; ///////////////////////////////
+    printf("\nAddress of nextPointer:%lx  Inside: %lx",(long int )p,*(long int *) p);
+    p = (char*)p+sizeof(long int);
+    *(char *)p = 'E';
+ printf("\nAddress of size: %lx Inside:%d",(int*)blocksPointer,*(int*) blocksPointer);
+
+    printf("\nAddress of empty-full char:%lx  Inside: %s",(long int )p,p);
+    /*
     int k=0;
     // Initially no block is assigned to any allocation
     for(k=0;k< (int)floor(1.0*afterAlloSize/BLOCK_SIZE) ;k++) //calculate according to left over space byte/byte
@@ -44,62 +57,76 @@ int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
         *(int*) p = -1;
     }
     blocksPointer = (char*)chunkpointer+sizeof(int)*(2+k);
+*/
 
     return	(0); //	if	success
 }
 void	*mem_allocate	(int	objectsize)
 {
-    lastId ++;
-    void *p = (char*)chunkpoint+sizeof(int)*(1);
+  //  void *p = (char*)chunkpoint+sizeof(int)*(1);
  //   printf("ChunkSize: %d ...\n",*(int*)p);
     printf("alloc	 called\n");
 
-    if (( objectsize < BLOCK_SIZE)|| (objectsize> 1024*2048))
+    if (( objectsize < 128)|| (objectsize> 1024*2048))
         return (NULL); //	if	not	success
+    int n = MAX_CHUNK  /MIN_BLOCK;
 
-    int  n = (int)floor((*(int*)p )/BLOCK_SIZE); ////////////////tam sayı çıkar
-    p =(char*)chunkpoint+sizeof(int)*(2);
-    int *allocation = (int*) p;
-    int blocksize=0;
+   void* p = (char *) chunkpoint + sizeof(int) * (2);
+    //  int *allocation = (int *) p;
+    int blocksize = 0;
     int blockSize[n];
-    int blockBase[n];
-    int lastBlock=0;
+    long int  blockBase[n];
+    char blockEmpty[n];
+    int includedID[n];
+    int lastBlock = 0;
+
     memset(blockBase, -1, sizeof(blockBase));
     memset(blockSize, -1, sizeof(blockSize));
+    memset(includedID, -2, sizeof(blockSize));
 
-    for (int k=0; k<n;k++){
-        if (allocation[k]==-1)
-        {
-            if( blocksize==0)
-                blockBase[lastBlock]=k;
-            blocksize++;
-        }
-        else{
-            if(blocksize>0){
-                blockSize[lastBlock]=blocksize;
-                blocksize=0;
-                lastBlock++;
-            }
-        }
+    int* sizePointer =blocksPointer;
+    int k =0;
+    blockBase[k] =(long int*)(( char*) (sizePointer)+ sizeof(int)+ sizeof(long int )+ sizeof(char));
+    long int * nextPointer =(long*)((char*)sizePointer + sizeof(int));
+    char* emptyPointer= (char *)((char*)nextPointer + sizeof(long int));
+    while( (*(long int *)nextPointer)!=999999) ///////////////////
+    {
+        blockBase[k] =(long int)(( char*) (sizePointer)+ sizeof(int)+ sizeof(long int)+ sizeof(char));
+        blockSize[k]= *sizePointer;
+        blockEmpty[k]=*emptyPointer;
+        emptyPointer= (int*)((char*)emptyPointer + sizeof(int) + *sizePointer + sizeof(long int)+ sizeof(char));
+        nextPointer =(long int *)((char*) nextPointer + sizeof(int) + *sizePointer + sizeof(long int)+sizeof(char));
+        sizePointer = (int*)((char*)sizePointer + sizeof(int) + *sizePointer + sizeof(long int)+ sizeof(char));
+        k++;
+    }
+    blockEmpty[k]= *emptyPointer;
+    blockSize[k]= *sizePointer;
+    k++;
+
+    printf("\n");
+    for (int t =0;t< k;t++){
+    printf("%lx",(unsigned long )blockBase[t]);
 
     }
-    if(blocksize>0)
-        blockSize[lastBlock]= blocksize;
+    printf("\n");
+    for (int t =0;t< k;t++){
 
+        printf("%d",blockSize[t]);
+    }
 
     if (*(int*) (chunkpoint)== BEST_FIT)
     {
         // pick each process and find suitable blocks
         // according to its size ad assign to it
     // printf("Found Best fit\n");
-     int objectSizeAsBlock  = (int)ceil(1.0*objectsize/BLOCK_SIZE);
+    // int objectSizeAsBlock  = (int)ceil(1.0*objectsize/BLOCK_SIZE);
             // Find the best fit block for current process
             int bestIdx = -1;
             for (int j=0; j< n; j++)
             {
                 if (blockSize[j]==-1)
                     break;
-                if (blockSize[j] >= objectSizeAsBlock)
+                if ((blockSize[j] >= objectsize)&& (blockEmpty[j]=='e'))
                 {
                     if (bestIdx == -1)
                         bestIdx = j;
@@ -109,29 +136,48 @@ void	*mem_allocate	(int	objectsize)
             }
          //   printf("BestIDx %d\n",bestIdx);
             // If we could find a block for current process
-            if (bestIdx != -1)
-            {
-                for(int f=0;f<objectSizeAsBlock;f++)
-                    allocation[  blockBase[bestIdx]+f]=lastId;
+            if (bestIdx != -1) {
+              /*  long int* movedNextPointer ;
+                if (bestIdx==0)
+                {
+                    movedNextPointer = (long int *) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char));
+                }
+                else{
+                    movedNextPointer = (long int *) ((char *) blockBase[bestIdx - 1] - sizeof(long int)- sizeof(char));
+                    blockBase[bestIdx-1]=
+                }*/
+
+                long int * originalNext ;
+                originalNext =    *(long int **) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char));
+                 int  firstSize =    *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char) );
+                *(int *) ((char *) blockBase[bestIdx] +objectsize - sizeof(long int) - sizeof(int) - sizeof(char) )= firstSize- objectsize;
+                *(long int **) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char)) = *(long int **) ((char *) blockBase[bestIdx]+objectsize - sizeof(long int)- sizeof(char));
+                *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char) )= objectsize;
+                *(char *) ((char *) blockBase[bestIdx]  - sizeof(char)) = 'f';
+                *(long int **) ((char *) blockBase[bestIdx]+objectsize - sizeof(long int)- sizeof(char)) = originalNext;
+                *(char *) ((char *) blockBase[bestIdx] +objectsize - sizeof(char)) = 'e';
+
+
             }
-            void *p = (char*)blocksPointer+sizeof(int)*(blockBase[bestIdx]);
-        return p;
+
+        return (void*)blockBase[bestIdx];
 
     } else if (*(int*)chunkpoint==FIRST_FIT)
     {
         printf("Found First fit\n");
-        int objectSizeAsBlock  = (int)ceil(objectsize/BLOCK_SIZE);
+
         // Find the best fit block for current process
         int bestIdx = -1;
         for (int j=0; j< n; j++)
         {
             if (blockSize[j]==-1)
                 break;
-            if (blockSize[j] >= objectSizeAsBlock)
+            if (blockSize[j] >= objectsize)
             {
                 bestIdx=j;
-                for(int f=0;f<objectSizeAsBlock;f++)
-                    allocation[  blockBase[bestIdx]+f]=lastId;
+                long int *movedNextPointer = (long int*) ((char *) blockBase[bestIdx - 1] - sizeof(long int));
+                *(long int **) ((char *) blockBase[bestIdx] - sizeof(long int )) = movedNextPointer;
+                *(int *) ((char *) blockBase[bestIdx] - sizeof(long int ) - sizeof(int)) = objectsize;
             }
         }
      //   printf("BestIDx %d\n",bestIdx);
@@ -140,20 +186,19 @@ void	*mem_allocate	(int	objectsize)
         {
             return NULL;
         }
-        void *p = (char*)blocksPointer+sizeof(int)*(blockBase[bestIdx]);
-        return p;
+        return blockBase[bestIdx];
 
     }else if (*(int*)chunkpoint==WORST_FIT)
     {
         printf("Found Worst fit\n");
-        int objectSizeAsBlock  = (int)ceil(objectsize/BLOCK_SIZE);
+
         // Find the best fit block for current process
         int worstIdx = -1;
         for (int j=0; j< n; j++)
         {
             if (blockSize[j]==-1)
                 break;
-            if (blockSize[j] >= objectSizeAsBlock)
+            if (blockSize[j] >= objectsize)
             {
                 if (worstIdx == -1)
                     worstIdx = j;
@@ -165,11 +210,12 @@ void	*mem_allocate	(int	objectsize)
         // If we could find a block for current process
         if (worstIdx != -1)
         {
-            for(int f=0;f<objectSizeAsBlock;f++)
-                allocation[  blockBase[worstIdx]+f]=lastId;
+            long int *movedNextPointer = (long int *) ((char *) blockBase[worstIdx - 1] - sizeof(long int));
+            *(long int **) ((char *) blockBase[worstIdx] - sizeof(long int)) = movedNextPointer;
+            *(int *) ((char *) blockBase[worstIdx] - sizeof(long int) - sizeof(int)) = objectsize;
         }
-        void *p = (char*)blocksPointer+sizeof(int)*(blockBase[worstIdx]);
-        return p;
+
+        return blockBase[worstIdx];
 
     } else
         return NULL; //	if	not	success
@@ -179,7 +225,8 @@ void	*mem_allocate	(int	objectsize)
 void	mem_free(void	*objectptr) {
     printf("free	called\n");
     void *p = (char *) chunkpoint + sizeof(int) * (1);
-    int n = (int) floor((*(int *) p) / BLOCK_SIZE);
+   // int n = (int) floor((*(int *) p) / BLOCK_SIZE);
+    int n = MAX_CHUNK  /MIN_BLOCK;
     p = (char *) chunkpoint + sizeof(int) * (2);
     int *allocation = (int *) p;
     int blocksize = 0;
@@ -191,38 +238,24 @@ void	mem_free(void	*objectptr) {
     memset(blockBase, -1, sizeof(blockBase));
     memset(blockSize, -1, sizeof(blockSize));
 
+    int* sizePointer =blocksPointer;
+    int k =0;
+    blockBase[k] =( char*) (sizePointer)+ sizeof(int)+ sizeof(long int);
+    long int* nextPointer =(long int*)((char*)sizePointer + sizeof(int));
+    while( (*(long int**)nextPointer)!=NULL)
+    {
 
-    for (int k = 0; k < n; k++) {
-        int t = (int) allocation[k];
-        //  printf("%d ",t);
-        if (t == lastHand) {
-            if (blocksize == 0) {
-                blockBase[lastBlock] = k;
+        blockBase[k] =( char*) (sizePointer)+ sizeof(int)+ sizeof(long int);
+        blockSize[k]= *sizePointer;
+        nextPointer =(long int*)((char*) nextPointer + sizeof(int) + *sizePointer + sizeof(long int ));
+        sizePointer = (int*)((char*)sizePointer + sizeof(int) + *sizePointer + sizeof(long int ));
+        k++;
 
-            }
-            blocksize++;
-        } else {
-            if (blocksize > 0) {
-                blockSize[lastBlock] = blocksize;
-                blocksize = 0;
-                lastBlock++;
-            }
-            lastHand = t;
-            if (blocksize == 0) {
-                blockBase[lastBlock] = k;
-
-                blocksize++;
-            }
-
-
-        }
     }
-        if (blocksize > 0) {
-            blockSize[lastBlock] = blocksize;
-            lastBlock++;
-        }
+    blockBase[k] =( char*) (sizePointer)+ sizeof(int)+ sizeof(long int);
+    blockSize[k]= *sizePointer;
 
-
+    /*
 
         for (int i = 0; i < lastBlock; i++) {
             void *p = (char *) (blocksPointer) + sizeof(int) * (blockBase[i]);
@@ -240,65 +273,50 @@ void	mem_free(void	*objectptr) {
                 return;
             }
         }
+        */
     }
 
     void mem_print(void) {
 
         void *p = (char *) chunkpoint + sizeof(int) * (1);
-        int n = (int) floor((*(int *) p) / BLOCK_SIZE);
+     //   int n = (int) floor((*(int *) p) / BLOCK_SIZE);
+        int n = MAX_CHUNK  /MIN_BLOCK;
         p = (char *) chunkpoint + sizeof(int) * (2);
-        int *allocation = (int *) p;
+      //  int *allocation = (int *) p;
         int blocksize = 0;
         int blockSize[n];
-        int blockBase[n];
+        long int  blockBase[n];
+        char blockEmpty[n];
         int includedID[n];
         int lastBlock = 0;
 
         memset(blockBase, -1, sizeof(blockBase));
         memset(blockSize, -1, sizeof(blockSize));
         memset(includedID, -2, sizeof(blockSize));
-        int lastHand = allocation[0];
 
-        for (int k = 0; k < n; k++) {
-            int t = (int) allocation[k];
-            printf("%d ",t);
-            if (t == lastHand) {
-                if (blocksize == 0) {
-                    blockBase[lastBlock] = k;
-                    includedID[lastBlock] = lastHand;
-                }
-                blocksize++;
-            } else {
-             //   printf("girdiiiiiiiiiii\n");
-                lastHand = t;
-                if (blocksize > 0) {
-                    blockSize[lastBlock] = blocksize;
-                    blocksize = 0;
-                    lastBlock++;
-                }
-                if (blocksize == 0) {
-                    blockBase[lastBlock] = k;
-                    includedID[lastBlock] = lastHand;
-                  //  printf("Last Hand changed to %d \n",lastHand);
-                    blocksize++;
-                }
-
-
-            }
+        int* sizePointer =blocksPointer;
+        int k =0;
+        blockBase[k] =(long int*)(( char*) (sizePointer)+ sizeof(int)+ sizeof(long int )+ sizeof(char));
+        long int * nextPointer =(long*)((char*)sizePointer + sizeof(int));
+        char* emptyPointer= (char *)((char*)nextPointer + sizeof(long int));
+        while( (*(long int *)nextPointer)!=999999)
+        {
+            blockBase[k] =(long int)(( char*) (sizePointer)+ sizeof(int)+ sizeof(long int)+ sizeof(char));
+            blockSize[k]= *sizePointer;
+            blockEmpty[k]=*emptyPointer;
+            emptyPointer= (int*)((char*)emptyPointer + sizeof(int) + *sizePointer + sizeof(long int)+ sizeof(char));
+            nextPointer =(long int *)((char*) nextPointer + sizeof(int) + *sizePointer + sizeof(long int)+sizeof(char));
+            sizePointer = (int*)((char*)sizePointer + sizeof(int) + *sizePointer + sizeof(long int)+ sizeof(char));
+            k++;
         }
-        if (blocksize > 0) {
-            blockSize[lastBlock] = blocksize;
-            lastBlock++;
-        }
-
+        blockEmpty[k]= *emptyPointer;
+        blockSize[k]= *sizePointer;
+        k++;
         printf("print	called\n");
         printf("\nStatus \tBlock Size\tBlock  Base\n");
-        for (int i = 0; i < lastBlock; i++) {
-            void *p = (char *) (blocksPointer) + BLOCK_SIZE* (blockBase[i]);
-            char* isEmpty= "full";
-            if(includedID[i]==-1)
-                isEmpty="empty";
-            printf("%s  \t \t\t %d \t\t %lx \n", isEmpty, blockSize[i] * BLOCK_SIZE, (unsigned long) p);
+        for (int i = 0; i < k; i++) {
+          //  void *p = (char *) (blocksPointer) +  (blockBase[i]);
+            printf("%c  \t \t\t %d \t\t %lx \n", blockEmpty[i], blockSize[i] ,blockBase[i]);
 
         }
 

@@ -17,6 +17,8 @@ math.h
 -
 string.h
 -
+stdbool.h
+-
 
 /home/zson/CLionProjects/operating_system_project3/memalloc.h
 
