@@ -36,7 +36,7 @@ int	main(int	argc,	char	*argv[])
     for	(i	=	0;	i	<	size;	++i)
         charptr[i]	=	0;
     printf("---chunk	test	ended	- success\n");
-    ret	=	mem_init(chunkptr,	size,	BEST_FIT);
+    ret	=	mem_init(chunkptr,	size,	FIRST_FIT);
     if	(ret	==	-1)	{
         printf("could	not	initialize	\n");
         exit(1);
@@ -48,16 +48,18 @@ mem_print();
     mem_print();
     printf("Returned x1 :%lx",(unsigned long)x1);
     x2	=	mem_allocate(4500);
+    mem_print();
     x5 = mem_allocate(7999);
     printf("Returned x2 :%lx",(unsigned long)x2);
     mem_print();
-    mem_free(x1);
-    mem_print();
-    x6	=	mem_allocate(500);
-    mem_print();
-/*    mem_free(x5);
-    mem_print();
     mem_free(x2);
+   mem_print();
+   x6	=	mem_allocate(500);
+    mem_print();
+  //  mem_print();
+  //  mem_free(x5);
+   // mem_print();
+   /* mem_free(x2);
     mem_print();*/
     /*
     x3	=	mem_allocate(1300);
