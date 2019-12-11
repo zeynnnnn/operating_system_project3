@@ -12,59 +12,46 @@
 #include <math.h>
 #include <string.h>
 #include <stdbool.h>
+
+#include <pthread.h>
 #define MAX_CHUNK 33554432
 #define MIN_BLOCK 128
 #define END_MARKER 999999
 //#define BLOCK_SIZE 128
 void  *chunkpoint;
-int lastId;
 int* blocksPointer;
-
+pthread_mutex_t lock;
 int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
 {
-
-    lastId=0;
     printf("init called\n");
     if ((method!=BEST_FIT)&&(method!=FIRST_FIT)&&(method!=WORST_FIT))
         return -1;
-
     if (( chunksize < 32 )||(chunksize> 32*1024))
         return -1;
+
+    if (pthread_mutex_init(&lock, NULL) != 0)
+    {
+        printf("\n mutex init failed\n");
+        return -1;
+    }
     chunkpoint=chunkpointer;
    *(int*)chunkpointer = method;
     void *p = (char*)chunkpointer+sizeof(int);
     *(int*) p = chunksize ;
    p = p+ sizeof(int);
    blocksPointer=p;
-   // int t =(chunksize*1024)-(2* sizeof(int));
- //   int afterAlloSize=   t - (int)floor(t/(BLOCK_SIZE+ sizeof(int)));
-      //      printf("Size::: %d \n",afterAlloSize);
-  // *(int*) p = afterAlloSize ;
-
     *(int*) blocksPointer = (int)((1024 * chunksize)- sizeof(int)*(3)- sizeof(char)- sizeof(long int)); // first bock initialization
      p = (char*)p+sizeof(int);
-     *(long int *)p = END_MARKER; ///////////////////////////////
+     *(long int *)p = END_MARKER;
    // printf("\nAddress of nextPointer:%lx  Inside: %lx",(long int )p,*(long int *) p);
     p = (char*)p+sizeof(long int);
     *(char *)p = 'E';
-    //printf("\nAddress of size: %lx Inside:%d",(int*)blocksPointer,*(int*) blocksPointer);
-
-  //  printf("\nAddress of empty-full char:%lx  Inside: %s",(long int )p,p);
-    /*
-    int k=0;
-    // Initially no block is assigned to any allocation
-    for(k=0;k< (int)floor(1.0*afterAlloSize/BLOCK_SIZE) ;k++) //calculate according to left over space byte/byte
-    {
-        void *p = (char*)chunkpointer+sizeof(int)*(2+k);
-        *(int*) p = -1;
-    }
-    blocksPointer = (char*)chunkpointer+sizeof(int)*(2+k);
-*/
 
     return	(0); //	if	success
 }
 void	*mem_allocate	(int	objectsize)
 {
+
   //  void *p = (char*)chunkpoint+sizeof(int)*(1);
  //   printf("ChunkSize: %d ...\n",*(int*)p);
     printf("alloc	 called\n");
@@ -73,10 +60,11 @@ void	*mem_allocate	(int	objectsize)
         return (NULL); //	if	not	success
     int n = MAX_CHUNK  /MIN_BLOCK;
 
-    int objectAndInfoSize=objectsize+ sizeof(int)+ sizeof(char)+ sizeof(long int);
+    pthread_mutex_lock(&lock);
+
+    int objectAndInfoSize= objectsize+ sizeof(int)+ sizeof(char)+ sizeof(long int);
    void* p = (char *) chunkpoint + sizeof(int) * (2);
-    //  int *allocation = (int *) p;
-    int blocksize = 0;
+
     int blockSize[n];
     long int  blockBase[n];
     char blockEmpty[n];
@@ -161,7 +149,7 @@ void	*mem_allocate	(int	objectsize)
                 *(char *) ((char *) blockBase[bestIdx] +objectsize + sizeof(long int)+ sizeof(int) ) = 'E';
 
             }
-
+        pthread_mutex_unlock(&lock);
         return (void*)blockBase[bestIdx];
 
     } else if (*(int*)chunkpoint==FIRST_FIT)
@@ -192,6 +180,7 @@ void	*mem_allocate	(int	objectsize)
                 *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char)) = *(long int *) ( (char *) blockBase[bestIdx] + objectsize);
                 *(char *) ((char *) blockBase[bestIdx] +objectsize + sizeof(long int)+ sizeof(int) ) = 'E';
 
+                pthread_mutex_unlock(&lock);
                 return (void*)blockBase[bestIdx];
 
 
@@ -201,6 +190,7 @@ void	*mem_allocate	(int	objectsize)
         // If we could  not find a block for current process
         if (bestIdx == -1)
         {
+            pthread_mutex_unlock(&lock);
             return NULL;
         }
 
@@ -241,13 +231,14 @@ void	*mem_allocate	(int	objectsize)
             *(char *) ((char *) blockBase[worstIdx] +objectsize + sizeof(long int)+ sizeof(int) ) = 'E';
 
         }
-
+        pthread_mutex_unlock(&lock);
         return (void*)blockBase[worstIdx];
 
 
 
     } else
-        return NULL; //	if	not	success
+        pthread_mutex_unlock(&lock);
+    return NULL; //	if	not	success
 }
 
 
@@ -255,6 +246,7 @@ void	mem_free(void	*objectptr) {
     printf("free	called\n");
     // void *p = (char *) chunkpoint + sizeof(int) * (1);
     // int n = (int) floor((*(int *) p) / BLOCK_SIZE);
+    pthread_mutex_lock(&lock);
     if( *((char*) objectptr - sizeof(char)) != 'F')
     {
         printf("! object ptr:%lx\n  ", (long )objectptr);
@@ -372,14 +364,15 @@ void	mem_free(void	*objectptr) {
                    }
 
                }
+                pthread_mutex_unlock(&lock);
                 return;
             }
         }
-
+    pthread_mutex_unlock(&lock);
     }
 
     void mem_print(void) {
-
+        pthread_mutex_lock(&lock);
         void* p = (char *) chunkpoint + sizeof(int) ;
         int n = ( (*(int*)p ) *1024)/MIN_BLOCK; // turn to byte
         printf("print	called\n");
@@ -408,7 +401,6 @@ void	mem_free(void	*objectptr) {
             sizePointer = (int*)((char*)sizePointer + sizeof(int) + *sizePointer + sizeof(long int)+ sizeof(char));
             k++;
         }
-
         blockBase[k] =(long int)(( char*) (sizePointer)+ sizeof(int)+ sizeof(long int )+ sizeof(char));
         blockEmpty[k]= *emptyPointer;
         blockSize[k]= *sizePointer;
@@ -420,5 +412,6 @@ void	mem_free(void	*objectptr) {
             printf("%c  \t \t\t %d \t\t %lx \n", blockEmpty[i], blockSize[i] ,blockBase[i]);
 
         }
+        pthread_mutex_unlock(&lock);
 
     }
