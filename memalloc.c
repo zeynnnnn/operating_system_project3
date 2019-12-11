@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #define MAX_CHUNK 33554432
 #define MIN_BLOCK 128
+#define END_MARKER 999999
 //#define BLOCK_SIZE 128
 void  *chunkpoint;
 int lastId;
@@ -42,7 +43,7 @@ int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
 
     *(int*) blocksPointer = (int)((1024 * chunksize)- sizeof(int)*(3)- sizeof(char)- sizeof(long int)); // first bock initialization
      p = (char*)p+sizeof(int);
-     *(long int *)p = NULL; ///////////////////////////////
+     *(long int *)p = END_MARKER; ///////////////////////////////
    // printf("\nAddress of nextPointer:%lx  Inside: %lx",(long int )p,*(long int *) p);
     p = (char*)p+sizeof(long int);
     *(char *)p = 'E';
@@ -89,7 +90,7 @@ void	*mem_allocate	(int	objectsize)
 
     long int * nextPointer =(long*)((char*)sizePointer + sizeof(int));
     char* emptyPointer= (char *)((char*)nextPointer + sizeof(long int));
-    while( (*(long int *)nextPointer)!=NULL)
+    while( (*(long int *)nextPointer)!=END_MARKER)
     {
         blockBase[k] =(long int)(( char*) (sizePointer)+ sizeof(int)+ sizeof(long int)+ sizeof(char));
         blockSize[k]= *sizePointer;
@@ -152,8 +153,8 @@ void	*mem_allocate	(int	objectsize)
                 *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char) )= objectsize;
                 *(char *) ((char *) blockBase[bestIdx]  - sizeof(char)) = 'F';
                 long int   originalNext =    *(long int *) ((char *)  blockBase[bestIdx] - sizeof(long int)- sizeof(char));
-                if (originalNext==NULL)
-                     *(long int *) ((char *) blockBase[bestIdx]+objectsize + sizeof( int)) = NULL; //////////////////not so sure if it is needed
+                if (originalNext==END_MARKER)
+                     *(long int *) ((char *) blockBase[bestIdx]+objectsize + sizeof( int)) = END_MARKER; //////////////////not so sure if it is needed
                 else
                     *(long int *) ((char *) blockBase[bestIdx]+objectsize + sizeof( int)) =originalNext;
                 *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char)) = *(long int *) ( (char *) blockBase[bestIdx] + objectsize);
@@ -184,8 +185,8 @@ void	*mem_allocate	(int	objectsize)
                 *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char) )= objectsize;
                 *(char *) ((char *) blockBase[bestIdx]  - sizeof(char)) = 'F';
                 long int   originalNext =    *(long int *) ((char *)  blockBase[bestIdx] - sizeof(long int)- sizeof(char));
-                if (originalNext==NULL)
-                    *(long int *) ((char *) blockBase[bestIdx]+objectsize + sizeof( int)) = NULL; //////////////////not so sure if it is needed
+                if (originalNext==END_MARKER)
+                    *(long int *) ((char *) blockBase[bestIdx]+objectsize + sizeof( int)) = END_MARKER; //////////////////not so sure if it is needed
                 else
                     *(long int *) ((char *) blockBase[bestIdx]+objectsize + sizeof( int)) =originalNext;
                 *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int)- sizeof(char)) = *(long int *) ( (char *) blockBase[bestIdx] + objectsize);
@@ -232,8 +233,8 @@ void	*mem_allocate	(int	objectsize)
             *(int *) ((char *) blockBase[worstIdx] - sizeof(long int) - sizeof(int) - sizeof(char) )= objectsize;
             *(char *) ((char *) blockBase[worstIdx]  - sizeof(char)) = 'F';
             long int   originalNext =    *(long int *) ((char *)  blockBase[worstIdx] - sizeof(long int)- sizeof(char));
-            if (originalNext==NULL)
-                *(long int *) ((char *) blockBase[worstIdx]+objectsize + sizeof( int)) = NULL; //////////////////not so sure if it is needed
+            if (originalNext==END_MARKER)
+                *(long int *) ((char *) blockBase[worstIdx]+objectsize + sizeof( int)) = END_MARKER; //////////////////not so sure if it is needed
             else
                 *(long int *) ((char *) blockBase[worstIdx]+objectsize + sizeof( int)) =originalNext;
             *(long int *) ((char *) blockBase[worstIdx] - sizeof(long int)- sizeof(char)) = *(long int *) ( (char *) blockBase[worstIdx] + objectsize);
@@ -254,6 +255,12 @@ void	mem_free(void	*objectptr) {
     printf("free	called\n");
     // void *p = (char *) chunkpoint + sizeof(int) * (1);
     // int n = (int) floor((*(int *) p) / BLOCK_SIZE);
+    if( *((char*) objectptr - sizeof(char)) != 'F')
+    {
+        printf("! object ptr:%lx\n  ", (long )objectptr);
+        printf("This memory location is not good for delete!\n");
+        return;
+    }
     int n = MAX_CHUNK  /MIN_BLOCK;
 
     int blockSize[n];
@@ -269,7 +276,7 @@ void	mem_free(void	*objectptr) {
 
     long int * nextPointer =(long*)((char*)sizePointer + sizeof(int));
     char* emptyPointer= (char *)((char*)nextPointer + sizeof(long int));
-    while( (*(long int *)nextPointer)!=NULL)
+    while( (*(long int *)nextPointer)!=END_MARKER)
     {
         blockBase[k] =(long int)(( char*) (sizePointer)+ sizeof(int)+ sizeof(long int)+ sizeof(char));
         blockSize[k]= *sizePointer;
@@ -290,9 +297,9 @@ void	mem_free(void	*objectptr) {
       //      printf("\ngiven :%lx", (unsigned long) objectptr);
             int oneInfoSize= (sizeof(int) + sizeof(long int) + sizeof(char));
 
-            if (objectptr == (void*)blockBase[i]) {
+            if( objectptr == (void*)blockBase[i]) {
 
-             //   printf("Girdiiii! object ptr:%lx,    block base :%lx  ", (long )objectptr,blockBase[i]);
+              //  printf("Girdiiii! object ptr:%lx,    block base :%lx  ", (long )objectptr,blockBase[i]);
                 char * startDeleted = (char*)(blockBase[i]- oneInfoSize );
                if (i==0)
                {
@@ -317,7 +324,9 @@ void	mem_free(void	*objectptr) {
                        *(int*)(blockBase[i-1]- oneInfoSize )= *(int*)(blockBase[i-1]- oneInfoSize)+oneInfoSize +(*startDeleted);
                        //next
                      //  *(long int*) ((char*)blockBase[i-1]- sizeof(char)- sizeof(long int))= *(long int *)((char*)startDeleted+ sizeof(int));
-                       *(long int*) ((char*)blockBase[i-1]- sizeof(char)- sizeof(long int))=NULL;
+                       *(long int*) ((char*)blockBase[i-1]- sizeof(char)- sizeof(long int))=END_MARKER;
+                       //empty
+                       *(char *) (((char*) startDeleted )+ sizeof(int)+ sizeof(long int)) = 'E'; // not used but if same place tried to be deleted twice
                    } else{
                        *(char *) (((char*) startDeleted )+ sizeof(int)+ sizeof(long int)) = 'E';
                    }
@@ -326,16 +335,13 @@ void	mem_free(void	*objectptr) {
                {
 
                    if( *((char*)(blockBase[i-1])- sizeof(char)) == 'E') {
-                       if (*((char *) blockBase[i + 1]) - sizeof(char) == 'F') {
-
+                       if (*(((char *) blockBase[i + 1]) - sizeof(char)) == 'F') {
                            //size
                            *(int *) ((char *) blockBase[i - 1] -oneInfoSize) =  *(int *) ((char *) blockBase[i - 1] - oneInfoSize) + *(int *) (startDeleted)+ oneInfoSize;
                            //next
-                           //    printf("Değiştirdiğim next pointer içi :%lx\n",*(long int*) ( (char*)blockBase[i-1] - sizeof(char)- sizeof(long int)));
-                           //    printf("Değiştirdiğim  pointer:%lx\n",(long int) ( (char*)blockBase[i-1] - sizeof(char)- sizeof(long int)));
                            *(long int *) ((char *) blockBase[i - 1] - sizeof(char) - sizeof(long int)) = *(long int *) (
                                    (char *) startDeleted + sizeof(int) + sizeof(char));
-                    //       printf("Değiştirdiğim hali pointer içi :%lx\n", *(long int *) ((char *) blockBase[i - 1] - sizeof(char) - sizeof(long int)));
+                           *(char *) (((char*) startDeleted )+ sizeof(int)+ sizeof(long int)) = 'E'; // not used but if same place tried to be deleted twice
                        } else {
                            //SİZE
                            *(int *) ((char *) blockBase[i - 1] - oneInfoSize) = *(int *) ((char *) blockBase[i - 1] -  oneInfoSize) +// öncekinin
@@ -343,16 +349,18 @@ void	mem_free(void	*objectptr) {
                            //next
                            *(long int *) ((char *) blockBase[i - 1] - sizeof(char) - sizeof(long int)) = *(long int *) (
                                    (char *) blockBase[i + 1] - sizeof(long int) - sizeof(char));
-
+                           *(char *) (((char*) startDeleted )+ sizeof(int)+ sizeof(long int)) = 'E'; // not used but if same place tried to be deleted twice
                        }
                    }
                    else
                    {
-                       if (* ((char*)blockBase[i+1])- sizeof(char) == 'E'){
+                       if (* ((char*)blockBase[i+1]- sizeof(char) )== 'E'){
                            //size
-                           *(int*)((char*)blockBase[i]- oneInfoSize  )= *(int*)((char*)blockBase[i+1]- oneInfoSize)+ oneInfoSize +*(int*)(startDeleted);
+                           *(int*)(startDeleted )= *(int*)((char*)blockBase[i+1]- oneInfoSize)+ oneInfoSize +*(int*)(startDeleted);
                            //next
-                              * (long int*) (  startDeleted+ sizeof(int))= *(long int *)((char*)blockBase[i+1]- sizeof(long int)-sizeof(char));
+                              * (long int*) ( startDeleted+ sizeof(int))= *(long int *)((char*)blockBase[i+1]- sizeof(long int)-sizeof(char));
+                        //      printf("New next pointer inside:%lx\n\n\n",*(long int *)((char*)blockBase[i+1]- sizeof(long int)-sizeof(char)));
+
                               //empty
                            *(char *) ( startDeleted+ sizeof(char)+ sizeof(long int)) = 'E';
                          }
@@ -389,7 +397,7 @@ void	mem_free(void	*objectptr) {
 
         long int * nextPointer =(long*)((char*)sizePointer + sizeof(int));
         char* emptyPointer= (char *)((char*)nextPointer + sizeof(long int));
-        while( ( (*(long int *)nextPointer)!=NULL) && (k<n))
+        while( ( (*(long int *)nextPointer)!=END_MARKER) && (k<n))
         {
            // printf("K:%d \n",k);
             blockBase[k] =(long int)(( char*) (sizePointer)+ sizeof(int)+ sizeof(long int)+ sizeof(char));
@@ -405,6 +413,7 @@ void	mem_free(void	*objectptr) {
         blockEmpty[k]= *emptyPointer;
         blockSize[k]= *sizePointer;
         k++;
+
        // printf("k: %d n:%d",k,n);
         printf("\nStatus \tBlock Size\tBlock  Base\n");
         for (int i = 0; i < k; i++) {
