@@ -56,19 +56,19 @@ mem_print();
    mem_print();
    x6	=	mem_allocate(500);
     mem_print();
-  //  mem_print();
-  //  mem_free(x5);
-   // mem_print();
-   /* mem_free(x2);
-    mem_print();*/
-    /*
+  // mem_print();
+    mem_free(x5);
+    mem_print();
+    mem_free(x2);
+    mem_print();
+
     x3	=	mem_allocate(1300);
     printf("Returned x3 :%lx",(unsigned long)x3);
     x4	=	mem_allocate(500);
     printf("Returned x4 :%lx",(unsigned long)x4);
     mem_print();
     mem_free(x3);
-    mem_print();*/
+    mem_print();
 /*
     mem_print();
     mem_free(x1);
