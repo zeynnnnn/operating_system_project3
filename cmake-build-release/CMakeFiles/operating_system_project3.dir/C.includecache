@@ -13,6 +13,8 @@ stdio.h
 -
 unistd.h
 -
+pthread.h
+-
 memalloc.h
 /home/zson/CLionProjects/operating_system_project3/memalloc.h
 

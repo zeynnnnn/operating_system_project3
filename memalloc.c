@@ -395,7 +395,7 @@ void	mem_free(void	*objectptr) {
                        if( *((char*)(blockBase[i-1])- sizeof(char)) == 'E')
                        {
                            //size
-                           *(int*)(blockBase[i-1]- oneInfoSize )= *(int*)(blockBase[i-1]- oneInfoSize)+oneInfoSize +(*startDeleted)+leftOverAtEnd;
+                           *(int*)(blockBase[i-1]- oneInfoSize )= *(int*)(blockBase[i-1]- oneInfoSize)+oneInfoSize +( *(int*)startDeleted)+leftOverAtEnd;
                            //next
                            *(long int*) ((char*)blockBase[i-1]- sizeof(char)- sizeof(long int))=END_MARKER;
                            //empty
@@ -413,8 +413,9 @@ void	mem_free(void	*objectptr) {
                } else if (i==0)
                 {
                     if( *((char*)blockBase[i+1]- sizeof(char)) == 'E'){
+                        printf("fuhdjsıcpkağxpl<zpdfo\n");
                         //size
-                        *(int*)(startDeleted )= *(int*)(blockBase[i+1]- oneInfoSize) +(*startDeleted)+ oneInfoSize;
+                        *(int*)(startDeleted )= *(int*)(blockBase[i+1]- oneInfoSize) +( *(int*)startDeleted)+ oneInfoSize;
                         //next
                         * (long int*) (  startDeleted+ sizeof(int))= *(long int *)((char*)blockBase[i+1]- sizeof(long int)-sizeof(char));
                         //empty

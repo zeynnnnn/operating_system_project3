@@ -18,6 +18,8 @@ void *memTest(void* j){
     mem_print();
     mem_free(x1);
     mem_print();
+    mem_allocate(138);
+    mem_print();
     mem_allocate(900);
     mem_print();
    /* printf("Returned x1 :%lx",(unsigned long)x1);
@@ -84,15 +86,15 @@ int	main(int	argc,	char	*argv[])
         exit(1);
 
     }
-    pthread_t thread1[1];
+    pthread_t thread1[10];
 
 
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 10; ++i) {
         pthread_create( &thread1[i], NULL, &memTest,NULL);
     }
 
     //parent thread
-    for (int i = 0; i < 1; ++i)
+    for (int i = 0; i < 10; ++i)
         pthread_join(thread1[i],NULL);
 
     return	0;

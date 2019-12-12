@@ -1,1 +1,1 @@
-/usr/bin/cc -g   CMakeFiles/operating_system_project3.dir/app.c.o  -o operating_system_project3 ../lib/libtest_library.a 
+/usr/bin/cc -g   CMakeFiles/operating_system_project3.dir/app.c.o  -o operating_system_project3 ../lib/libtest_library.a -lm -lrt -lpthread 
