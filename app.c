@@ -8,7 +8,49 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<unistd.h>
+#include <pthread.h>
 #include	"memalloc.h"
+void *memTest(void* j){
+    void	*x1,	*x2,	*x3,*x4,*x5,*x6; //	object	pointers
+//	below	we	allocate	and	deallocate	memory	dynamically
+    mem_print();
+    x1	=	mem_allocate(1048);
+    mem_print();
+    mem_free(x1);
+    mem_print();
+    mem_allocate(900);
+    mem_print();
+   /* printf("Returned x1 :%lx",(unsigned long)x1);
+    x2	=	mem_allocate(4500);
+    mem_print();
+    x5 = mem_allocate(7999);
+    printf("Returned x2 :%lx",(unsigned long)x2);
+    mem_print();
+    mem_free(x2);
+    mem_print();
+    x6	=	mem_allocate(500);
+    mem_print();
+    // mem_print();
+    mem_free(x5);
+    mem_print();
+    //  mem_free(x2);
+
+
+    x3	=	mem_allocate(1300);
+    printf("Returned x3 :%lx",(unsigned long)x3);
+    x4	=	mem_allocate(500);
+    printf("Returned x4 :%lx",(unsigned long)x4);
+    mem_print();
+    mem_free(x3);
+    mem_print();
+
+    mem_free(x1);
+    mem_print();
+    mem_free(x2);
+    mem_print();
+    mem_free(x4);
+    mem_print();*/
+}
 int	main(int	argc,	char	*argv[])
 {
     void	*chunkptr;
@@ -17,7 +59,7 @@ int	main(int	argc,	char	*argv[])
     int	ret;
     int	i;
     int	size;
-    void	*x1,	*x2,	*x3,*x4,*x5,*x6; //	object	pointers
+
     if	(argc	!=	2)	{
         printf("usage:	app	<size	in	KB>\n");
         exit(1);
@@ -42,39 +84,16 @@ int	main(int	argc,	char	*argv[])
         exit(1);
 
     }
-//	below	we	allocate	and	deallocate	memory	dynamically
-mem_print();
-    x1	=	mem_allocate(600);
-    mem_print();
-    printf("Returned x1 :%lx",(unsigned long)x1);
-    x2	=	mem_allocate(4500);
-    mem_print();
-    x5 = mem_allocate(7999);
-    printf("Returned x2 :%lx",(unsigned long)x2);
-    mem_print();
-    mem_free(x2);
-   mem_print();
-   x6	=	mem_allocate(500);
-    mem_print();
-  // mem_print();
-    mem_free(x5);
-  mem_print();
-    //  mem_free(x2);
+    pthread_t thread1[1];
 
 
-    x3	=	mem_allocate(1300);
-    printf("Returned x3 :%lx",(unsigned long)x3);
-    x4	=	mem_allocate(500);
-    printf("Returned x4 :%lx",(unsigned long)x4);
-    mem_print();
-    mem_free(x3);
-    mem_print();
+    for (int i = 0; i < 1; ++i) {
+        pthread_create( &thread1[i], NULL, &memTest,NULL);
+    }
 
-    mem_free(x1);
-    mem_print();
-    mem_free(x2);
-    mem_print();
-    mem_free(x4);
-    mem_print();
+    //parent thread
+    for (int i = 0; i < 1; ++i)
+        pthread_join(thread1[i],NULL);
+
     return	0;
 }
