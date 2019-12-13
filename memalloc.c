@@ -218,9 +218,9 @@ void	*mem_allocate	(int	objectsize)
 
                         int firstSize = *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) -
                                                   sizeof(char));
-                        printf("left over: %d\n",leftOverAtEnd);
+                      //  printf("left over: %d\n",leftOverAtEnd);
                         leftOverAtEnd = firstSize - objectsize;
-                        printf("left over: %d\n",leftOverAtEnd);
+                       // printf("left over: %d\n",leftOverAtEnd);
                         *(char *) ((char *) blockBase[bestIdx] - sizeof(char)) = 'F';
                         *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int) -
                                        sizeof(char)) = END_MARKER; //////////////////not so sure if it is needed
@@ -305,9 +305,9 @@ void	*mem_allocate	(int	objectsize)
 
                     int firstSize = *(int *) ((char *) blockBase[worstIdx] - sizeof(long int) - sizeof(int) -
                                               sizeof(char));
-                    printf("left over: %d\n", leftOverAtEnd);
+            //        printf("left over: %d\n", leftOverAtEnd);
                     leftOverAtEnd = firstSize - objectsize;
-                    printf("left over: %d\n", leftOverAtEnd);
+              //      printf("left over: %d\n", leftOverAtEnd);
                     *(char *) ((char *) blockBase[worstIdx] - sizeof(char)) = 'F';
                     *(long int *) ((char *) blockBase[worstIdx] - sizeof(long int) -
                                    sizeof(char)) = END_MARKER; //////////////////not so sure if it is needed
@@ -396,7 +396,7 @@ void	mem_free(void	*objectptr) {
     blockEmpty[k]= *emptyPointer;
     blockSize[k]= *sizePointer;
     k++;
-    printf("Left Over:%d",leftOverAtEnd);
+ //   printf("Left Over:%d",leftOverAtEnd);
         for (int i = 0; i < k; i++) {
        //    void *p = (char *) (blocksPointer (blockBase[i]);
           //  printf("\nCalcuLATED:%lx", (unsigned long) p);
