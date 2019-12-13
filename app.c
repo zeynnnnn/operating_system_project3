@@ -16,7 +16,7 @@ void *memTest(void* j){
     mem_print();
     x1	=	mem_allocate(1048);
     mem_print();
-    // printf("Returned x1 :%lx",(unsigned long)x1);
+    printf("Returned x1 :%lx",(unsigned long)x1);
     x2	=	mem_allocate(4500);
     mem_print();
     x5 = mem_allocate(7999);
@@ -28,11 +28,8 @@ void *memTest(void* j){
     mem_print();
     x6	=	mem_allocate(500);
     mem_print();
-    // mem_print();
     mem_free(x5);
     mem_print();
-
-
 
     x3	=	mem_allocate(1300);
     mem_print();
@@ -45,6 +42,7 @@ void *memTest(void* j){
     mem_free(x6);
     mem_print();
     mem_free(x4);
+    mem_print();
 /*
     mem_free(x1);
     mem_print();
