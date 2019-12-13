@@ -20,7 +20,7 @@
 //#define BLOCK_SIZE 128
 void  *chunkpoint;
 int* blocksPointer;
-int leftOverAtEnd;
+int leftOverAtEnd  =0;
 pthread_mutex_t lock;
 int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
 {
@@ -59,12 +59,20 @@ void	*mem_allocate	(int	objectsize)
 
     if (( objectsize < 128)|| (objectsize> 1024*2048))
         return (NULL); //	if	not	success
+
+
     int n = MAX_CHUNK  /MIN_BLOCK;
 
     pthread_mutex_lock(&lock);
 
+    if (objectsize>(*(int*)((char*)chunkpoint+ sizeof(int))*1024- sizeof(int)- sizeof(char)- sizeof(long int))){
+        printf("Object is bigger than chucksize!");
+        pthread_mutex_unlock(&lock);
+        return (NULL);
+    }
+
+
     int objectAndInfoSize= objectsize+ sizeof(int)+ sizeof(char)+ sizeof(long int);
-   void* p = (char *) chunkpoint + sizeof(int) * (2);
 
     int blockSize[n];
     long int  blockBase[n];
@@ -150,9 +158,6 @@ void	*mem_allocate	(int	objectsize)
                                        sizeof(char)) = END_MARKER; //////////////////not so sure if it is needed
                         *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) -
                                   sizeof(char)) = objectsize;
-
-                        pthread_mutex_unlock(&lock);
-                        return (void *) blockBase[bestIdx];
                     }
                 }
                 else {
@@ -173,8 +178,6 @@ void	*mem_allocate	(int	objectsize)
                             (char *) blockBase[bestIdx] + objectsize);
                     *(char *) ((char *) blockBase[bestIdx] + objectsize + sizeof(long int) + sizeof(int)) = 'E';
 
-                    pthread_mutex_unlock(&lock);
-                    return (void *) blockBase[bestIdx];
 
                 }
             }
@@ -293,8 +296,7 @@ void	*mem_allocate	(int	objectsize)
 
                     *(int *) ((char *) blockBase[worstIdx] - sizeof(long int) - sizeof(int) -
                               sizeof(char)) = objectsize;
-                    pthread_mutex_unlock(&lock);
-                    return (void *) blockBase[worstIdx];
+
                 }
             } else {
                 int firstSize = *(int *) ((char *) blockBase[worstIdx] - sizeof(long int) - sizeof(int) -
@@ -314,8 +316,6 @@ void	*mem_allocate	(int	objectsize)
                         (char *) blockBase[worstIdx] + objectsize);
                 *(char *) ((char *) blockBase[worstIdx] + objectsize + sizeof(long int) + sizeof(int)) = 'E';
 
-                pthread_mutex_unlock(&lock);
-                return (void *) blockBase[worstIdx];
 
 
             }
@@ -323,10 +323,8 @@ void	*mem_allocate	(int	objectsize)
         pthread_mutex_unlock(&lock);
         return (void*)blockBase[worstIdx];
 
-
-
-    } else
-        pthread_mutex_unlock(&lock);
+    }
+    pthread_mutex_unlock(&lock);
     return NULL; //	if	not	success
 }
 
@@ -388,10 +386,11 @@ void	mem_free(void	*objectptr) {
                {
                    if (k==1){
                        *(char *) ((char*) startDeleted + sizeof(int)+ sizeof(long int))= 'E';
-                       *(long int*) ((char*)blockBase[i]- sizeof(char)- sizeof(long int))=END_MARKER;
+                       *(long int*) ((char*)blockBase[i]- sizeof(char)- sizeof(long int))= END_MARKER;
                        *(int*)(startDeleted )= *(int*)(startDeleted)+leftOverAtEnd;
 
                    } else{
+
                        if( *((char*)(blockBase[i-1])- sizeof(char)) == 'E')
                        {
                            //size
@@ -481,10 +480,8 @@ void	mem_free(void	*objectptr) {
         long int  blockBase[n];
         char blockEmpty[n];
 
-
         memset(blockBase, -1, sizeof(blockBase));
         memset(blockSize, -1, sizeof(blockSize));
-
 
         int* sizePointer =blocksPointer;
         int k =0;
@@ -507,7 +504,7 @@ void	mem_free(void	*objectptr) {
         blockSize[k]= *sizePointer;
         k++;
 
-       // printf("k: %d n:%d",k,n);
+        printf("k: %d n:%d",k,n);
         printf("\nStatus \tBlock Size\tBlock  Base\n");
         for (int i = 0; i < k; i++) {
             printf("%c  \t \t\t %d \t\t %lx \n", blockEmpty[i], blockSize[i] ,blockBase[i]);
