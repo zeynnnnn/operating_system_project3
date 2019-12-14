@@ -10,39 +10,40 @@
 #include	<unistd.h>
 #include <pthread.h>
 #include	"memalloc.h"
+#include <time.h>
 void *memTest(void* j){
     void	*x1,	*x2,	*x3,*x4,*x5,*x6; //	object	pointers
 //	below	we	allocate	and	deallocate	memory	dynamically
-    mem_print();
+ //   mem_print();
     x1	=	mem_allocate(1048);
-    mem_print();
-    printf("Returned x1 :%lx",(unsigned long)x1);
+  //  mem_print();
+ //   printf("Returned x1 :%lx",(unsigned long)x1);
     x2	=	mem_allocate(4500);
-    mem_print();
+  //  mem_print();
     x5 = mem_allocate(7999);
-    printf("Returned x2 :%lx",(unsigned long)x2);
-    mem_print();
+//    printf("Returned x2 :%lx",(unsigned long)x2);
+ //   mem_print();
    mem_free(x2);
-   mem_print();
+//   mem_print();
     mem_free(x1);
-    mem_print();
+  //  mem_print();
     x6	=	mem_allocate(500);
-    mem_print();
+    //mem_print();
     mem_free(x5);
-    mem_print();
+   // mem_print();
 
     x3	=	mem_allocate(1300);
-    mem_print();
-    printf("Returned x3 :%lx",(unsigned long)x3);
+   // mem_print();
+  //  printf("Returned x3 :%lx",(unsigned long)x3);
     mem_free(x3);
-    mem_print();
+//    mem_print();
     x4	=	mem_allocate(500);
-    printf("Returned x4 :%lx",(unsigned long)x4);
-    mem_print();
+  //  printf("Returned x4 :%lx",(unsigned long)x4);
+ //   mem_print();
     mem_free(x6);
-    mem_print();
+ //   mem_print();
     mem_free(x4);
-    mem_print();
+ //   mem_print();
 /*
     mem_free(x1);
     mem_print();
@@ -84,8 +85,10 @@ int	main(int	argc,	char	*argv[]) {
 
     }
     pthread_t thread1[100];
+    int msec = 0;
 
-
+    clock_t before;
+    before = clock();
     for (int i = 0; i < 100; ++i) {
         pthread_create(&thread1[i], NULL, &memTest, NULL);
     }
@@ -94,5 +97,10 @@ int	main(int	argc,	char	*argv[]) {
     for (int i = 0; i < 100; ++i)
         pthread_join(thread1[i], NULL);
 
+    clock_t difference = clock() - before;
+
+    msec = difference * 1000000 / CLOCKS_PER_SEC;
+    printf("Time taken %d seconds %d milliseconds %d microsecond\n",
+           msec/1000000, msec/1000,msec%1000);
     return 0;
 }

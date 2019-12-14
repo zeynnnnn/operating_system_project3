@@ -71,7 +71,7 @@ void	*mem_allocate	(int	objectsize)
 
 
     if (objectsize>(*(int*)((char*)chunkpoint+ sizeof(int))*1024- sizeof(int)- sizeof(char)- sizeof(long int))){
-        printf("Object is bigger than chucksize!");
+        printf("Object is bigger than chucksize!\n");
         pthread_mutex_unlock(&lock);
         return (NULL);
     }
@@ -128,7 +128,7 @@ void	*mem_allocate	(int	objectsize)
     {
         // pick each process and find suitable blocks
         // according to its size ad assign to it
-     printf("Found Best fit\n");
+    // printf("Found Best fit\n");
 
             // Find the best fit block for current process
             int bestIdx = -1;
@@ -157,12 +157,12 @@ void	*mem_allocate	(int	objectsize)
 
                 if((blockSize[bestIdx] < objectAndInfoSize) ) {
 
-                    printf("k:%d  object and ınfo sze = %d", k, objectAndInfoSize);
+                   // printf("k:%d  object and ınfo sze = %d", k, objectAndInfoSize);
                     if ((bestIdx == (k - 1)) && ((blockSize[bestIdx]) < (objectAndInfoSize))) {
                          int firstSize = *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char));
-                        printf("left over: %d\n",leftOverAtEnd);
+                    //    printf("left over: %d\n",leftOverAtEnd);
                         leftOverAtEnd = firstSize - objectsize;
-                        printf("left over: %d\n",leftOverAtEnd);
+                   //     printf("left over: %d\n",leftOverAtEnd);
                         *(char *) ((char *) blockBase[bestIdx] - sizeof(char)) = 'F';
                         *(long int *) ((char *) blockBase[bestIdx] - sizeof(long int) -
                                        sizeof(char)) = END_MARKER; //////////////////not so sure if it is needed
@@ -196,7 +196,7 @@ void	*mem_allocate	(int	objectsize)
 
     } else if (*(int*)chunkpoint==FIRST_FIT)
     {
-        printf("Found First fit\n");
+      //  printf("Found First fit\n");
 
 
         // Find the best fit block for current process
@@ -270,7 +270,7 @@ void	*mem_allocate	(int	objectsize)
 
     }else if (*(int*)chunkpoint==WORST_FIT)
     {
-        printf("Found Worst fit\n");
+       // printf("Found Worst fit\n");
 
         // Find the best fit block for current process
         int worstIdx = -1;
@@ -301,8 +301,7 @@ void	*mem_allocate	(int	objectsize)
 
                 printf("k:%d  object and ınfo sze = %d", k, objectAndInfoSize);
                 if ((worstIdx == (k - 1)) && ((blockSize[worstIdx]) < (objectAndInfoSize))) {
-                    printf("rjfjokdplcdıo");
-
+              //      printf("rjfjokdplcdıo");
                     int firstSize = *(int *) ((char *) blockBase[worstIdx] - sizeof(long int) - sizeof(int) -
                                               sizeof(char));
             //        printf("left over: %d\n", leftOverAtEnd);
@@ -355,7 +354,7 @@ void	mem_free(void	*objectptr) {
     if (objectptr==NULL)
     {
         pthread_mutex_unlock(&lock);
-        printf("Given Pointer is NUll!");
+        printf("Given Pointer is NUll!\n");
         return;
     }
 
@@ -396,13 +395,8 @@ void	mem_free(void	*objectptr) {
     blockEmpty[k]= *emptyPointer;
     blockSize[k]= *sizePointer;
     k++;
- //   printf("Left Over:%d",leftOverAtEnd);
         for (int i = 0; i < k; i++) {
-       //    void *p = (char *) (blocksPointer (blockBase[i]);
-          //  printf("\nCalcuLATED:%lx", (unsigned long) p);
-      //      printf("\ngiven :%lx", (unsigned long) objectptr);
             int oneInfoSize= (sizeof(int) + sizeof(long int) + sizeof(char));
-
             if( objectptr == (void*)blockBase[i]) {
 
               //  printf("Girdiiii! object ptr:%lx,    block base :%lx  ", (long )objectptr,blockBase[i]);
@@ -438,7 +432,6 @@ void	mem_free(void	*objectptr) {
                } else if (i==0)
                      {
                     if( *((char*)blockBase[i+1]- sizeof(char)) == 'E'){
-                        printf("fuhdjsıcpkağxpl<zpdfo\n");
                         //size
                         *(int*)(startDeleted )= *(int*)(blockBase[i+1]- oneInfoSize) +( *(int*)startDeleted)+ oneInfoSize;
                         //next
