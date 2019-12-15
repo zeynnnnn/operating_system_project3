@@ -24,7 +24,7 @@ int leftOverAtEnd  =0;
 pthread_mutex_t lock;
 int	mem_init	(void	*chunkpointer,	int	chunksize,	int	method)
 {
-    printf("init called\n");
+    printf("init called with method : %d\n",method);
     if ((method!=BEST_FIT)&&(method!=FIRST_FIT)&&(method!=WORST_FIT))
         return -1;
     if (( chunksize < 32 )||(chunksize> 32*1024))
@@ -139,10 +139,14 @@ void	*mem_allocate	(int	objectsize)
               //  printf("\nBlockSize Of Current : %d%c\n",blockSize[j],blockEmpty[j]);
                 if ((blockSize[j] >= objectsize) && (blockEmpty[j]=='E'))
                 {
-                    if (bestIdx == -1)
-                        bestIdx = j;
-                    else if (blockSize[bestIdx] > blockSize[j])
-                        bestIdx = j;
+                    if (( (blockSize[j])>=objectAndInfoSize)|| (j==(k-1)))
+                    {
+                        if (bestIdx == -1)
+                            bestIdx = j;
+                        else if (blockSize[bestIdx] > blockSize[j])
+                            bestIdx = j;
+                    }
+
                 }
             }
         if (bestIdx == -1)
@@ -151,13 +155,12 @@ void	*mem_allocate	(int	objectsize)
             pthread_mutex_unlock(&lock);
             return NULL;
         }
-   //         printf("BestIDx %d\n",bestIdx);
+        printf("k:%d  object and ınfo sze = %d", k, objectAndInfoSize);
+            printf("BestIDx %d\n",bestIdx);
             // If we could find a block for current process
             if (bestIdx != -1) {
 
                 if((blockSize[bestIdx] < objectAndInfoSize) ) {
-
-                   // printf("k:%d  object and ınfo sze = %d", k, objectAndInfoSize);
                     if ((bestIdx == (k - 1)) && ((blockSize[bestIdx]) < (objectAndInfoSize))) {
                          int firstSize = *(int *) ((char *) blockBase[bestIdx] - sizeof(long int) - sizeof(int) - sizeof(char));
                     //    printf("left over: %d\n",leftOverAtEnd);
@@ -207,11 +210,11 @@ void	*mem_allocate	(int	objectsize)
                 break;
             //printf("\nBlockSize Of Current : %d%c\n",blockSize[j],blockEmpty[j]);
 
-
             if ((blockSize[j] >= objectsize) && (blockEmpty[j]=='E'))
             {
                 if((blockSize[j] < objectAndInfoSize) ) {
                     bestIdx = j;
+
     //                printf("k:%d  object and ınfo sze = %d", k, objectAndInfoSize);
                     if ((bestIdx == (k - 1)) && ((blockSize[bestIdx]) < (objectAndInfoSize))) {
          //               printf("rjfjokdplcdıo");
@@ -278,13 +281,19 @@ void	*mem_allocate	(int	objectsize)
         {
             if (blockSize[j]==-1)
                 break;
-            if ((blockSize[j] >= objectAndInfoSize)&&(blockEmpty[j]=='E'))
+
+            if ((blockSize[j] >= objectsize) && (blockEmpty[j]=='E'))
             {
-                if (worstIdx == -1)
-                    worstIdx = j;
-                else if (blockSize[worstIdx] <blockSize[j])
-                    worstIdx = j;
+                if (( (blockSize[j])>=objectAndInfoSize)|| (j==(k-1)))
+                {
+                    if (worstIdx == -1)
+                        worstIdx = j;
+                    else if (blockSize[worstIdx] < blockSize[j])
+                        worstIdx = j;
+                }
+
             }
+
         }
         if (worstIdx == -1)
         {

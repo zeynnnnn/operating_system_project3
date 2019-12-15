@@ -14,19 +14,22 @@
 void *memTest(void* j){
     void	*x1,	*x2,	*x3,*x4,*x5,*x6; //	object	pointers
 //	below	we	allocate	and	deallocate	memory	dynamically
- //   mem_print();
-    x1	=	mem_allocate(1048);
-  //  mem_print();
+
+   mem_print();
+    x1	=	mem_allocate(1012);
+    mem_print();
  //   printf("Returned x1 :%lx",(unsigned long)x1);
     x2	=	mem_allocate(4500);
-  //  mem_print();
-    x5 = mem_allocate(7999);
+    mem_print();
+    mem_free(x1);
+
+    mem_print();
+    x5 = mem_allocate(1000);
 //    printf("Returned x2 :%lx",(unsigned long)x2);
- //   mem_print();
+    mem_print();
    mem_free(x2);
 //   mem_print();
-    mem_free(x1);
-  //  mem_print();
+
     x6	=	mem_allocate(500);
     //mem_print();
     mem_free(x5);
@@ -78,7 +81,7 @@ int	main(int	argc,	char	*argv[]) {
     for (i = 0; i < size; ++i)
         charptr[i] = 0;
     printf("---chunk	test	ended	- success\n");
-    ret = mem_init(chunkptr, size, WORST_FIT);
+    ret = mem_init(chunkptr, size, BEST_FIT);
     if (ret == -1) {
         printf("could	not	initialize	\n");
         exit(1);
@@ -89,12 +92,12 @@ int	main(int	argc,	char	*argv[]) {
 
     clock_t before;
     before = clock();
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1; ++i) {
         pthread_create(&thread1[i], NULL, &memTest, NULL);
     }
 
     //parent thread
-    for (int i = 0; i < 100; ++i)
+    for (int i = 0; i < 1; ++i)
         pthread_join(thread1[i], NULL);
 
     clock_t difference = clock() - before;
